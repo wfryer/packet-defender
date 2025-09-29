@@ -23,8 +23,8 @@ The core objective is to gamify essential Internet terminology and processes:
 
 ## 🚀 Play via GitHub Pages
 
-Use the link ]https://wfryer.github.io/packet-defender/](wfryer.github.io/packet-defender) to directly play the latest version of the game.
+Use the link [wfryer.github.io/packet-defender](https://wfryer.github.io/packet-defender) to directly play the latest version of the game.
 
 Good luck with your students! I hope they enjoy the game and the improved features.
 
-Check out more of my AI coding experiments, blog posts and videos on [https://ai.wesfryer.com/](ai.wesfryer.com0.
+Check out more of my AI coding experiments, blog posts and videos on [ai.wesfryer.com](https://ai.wesfryer.com/)
