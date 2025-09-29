@@ -1,4 +1,4 @@
-# Packet Defender: An Educational Web-Based Network Game (v2.5)
+# Packet Defender: An Educational Web-Based Network Game (v2.0)
 
 **A single-file HTML/JavaScript game designed by Wes Fryer and collaboratively "vibecoded" with Gemini, the AI assistant.**
 
