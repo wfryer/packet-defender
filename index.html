@@ -5,212 +5,574 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Packet Defender Game</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
-            margin: 0;
-            padding: 0;
+        /* General Styles */
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; color: #333; margin: 0; padding: 0; }
+        header { background: #333; color: #fff; padding: 10px 20px; text-align: center; }
+        main { padding: 20px; max-width: 1000px; margin: auto; display: none; flex-wrap: wrap; }
+        h2 { width: 100%; text-align: center; margin-bottom: 5px; }
+        /* Layout Containers */
+        .top-row { width: 100%; display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .overall-timer-row, .player-name-row { width: 100%; margin-bottom: 20px; }
+        .left-panel { flex: 1; min-width: 45%; margin-right: 10px; }
+        .right-panel { flex: 1; min-width: 45%; margin-left: 10px; }
+        /* Component Styling */
+        .countdown, .score { padding: 10px; border: 1px solid #ccc; background: #fff; font-size: 1.2em; font-weight: bold; text-align: center; }
+        .countdown { background-color: forestgreen; color: #fff; width: 49%; }
+        .score { background-color: #9370DB; color: #fff; width: 49%; }
+        .overall-timer { 
+            background-color: #004d40; 
+            color: white; 
+            padding: 10px; 
+            border: 1px solid #00332e; 
+            font-size: 1.2em; 
+            font-weight: bold; 
+            text-align: center; 
         }
-        header {
-            background: #333;
-            color: #fff;
-            padding: 10px 20px;
-            text-align: center;
+        .player-name-panel { 
+            background-color: #512888; 
+            color: white; 
+            padding: 10px; 
+            font-size: 1.2em; 
+            font-weight: bold; 
+            text-align: center; 
         }
-        main {
-            padding: 20px;
-            max-width: 800px;
-            margin: auto;
+        .packet-list, .actions, .dns-lookup { margin: 10px 0; padding: 10px; border: 1px solid #ccc; background: #fff; }
+        .input-field { display: block; margin: 10px 0; padding: 8px; width: 90%; }
+        
+        /* === CRITICAL FIX: Ensure RED color has highest specificity === */
+        .packet.under-attack { color: red !important; font-weight: bold !important; }
+
+        /* Packet Colors (Non-Attack) */
+        .color-0 { color: #007bff; } /* Blue */
+        .color-1 { color: #28a745; } /* Green */
+        .color-2 { color: #ff7f00; } /* Orange */
+        .color-3 { color: #17a2b8; } /* Cyan */
+        .color-4 { color: #6f42c1; } /* Indigo */
+
+        /* Instructions Styling */
+        .instructions { background-color: #ffffe0; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; width: 100%; }
+        /* Footer Styling */
+        footer { width: 100%; text-align: center; margin-top: 30px; padding: 10px 0; }
+        footer a { color: #007bff; text-decoration: none; }
+        /* Start Screen Styling */
+        #startScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; text-align: center;
         }
-        .packet-list, .actions {
-            margin: 20px 0;
+        #startScreen button {
+            background-color: #28a745; font-size: 1.2em; padding: 15px 30px; margin: 15px; border: none; cursor: pointer;
+        }
+        #nameInput {
             padding: 10px;
-            border: 1px solid #ccc;
-            background: #fff;
-        }
-        button {
-            padding: 10px 15px;
-            margin: 5px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .packet {
-            margin-bottom: 10px;
-        }
-        .input-field {
-            display: block;
-            margin: 10px 0;
-        }
-        .under-attack {
-            color: red;
-            font-weight: bold;
-        }
-        .countdown {
             font-size: 1.2em;
+        }
+        .name-prompt {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+            margin-top: 10px;
+        }
+        /* Animation Panel */
+        #animationPanel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #fff;
+            color: white;
+            font-size: 2em;
             font-weight: bold;
-            margin-top: 20px;
-            color: forestgreen;
+            display: none;
+            z-index: 1000;
+            white-space: pre;
+            line-height: 1;
         }
     </style>
 </head>
 <body>
+
+    <div id="startScreen">
+        <h2>Welcome to Packet Defender!</h2>
+        <p class="name-prompt">Enter your first name:</p>
+        <input type="text" id="nameInput" placeholder="e.g., Wes">
+        <p style="margin-top: 20px;">Select a game mode to begin your network defense mission.</p>
+        <div>
+            <button onclick="selectMode(60)">Easy (60 seconds refresh)</button>
+            <button onclick="selectMode(45)">Intermediate (45 seconds refresh)</button>
+            <button onclick="selectMode(30)">Hard (30 seconds refresh)</button>
+        </div>
+    </div>
     <header>
         <h1>Packet Defender Game</h1>
     </header>
-    <main>
+    <main id="gameMain">
         <h2>Transmit or Defend Packets</h2>
-        <p>You are a network defender tasked with ensuring safe data transmission while protecting critical servers from cyber attacks. Enter the correct packet details to transmit or defend servers under attack to earn points!</p>
-        <div class="countdown">
-            Countdown to refresh: <span id="countdown">30</span> seconds
+        
+        <div class="instructions">
+            <h3>&#128220; Instructions:</h3>
+            <div class="instruction-content">
+                <ol>
+                    <li>**Identify a Packet:** Look at the **Packets in Queue** section.</li>
+                    <li>**Resolve DNS (Required):** The **Dest** field shows a **Domain Name** (e.g., `google.com`). You **must** look up the real IP address in the **DNS Lookup Table** and enter the **IP** into the Destination field.</li>
+                    <li>**Enter Details:** Type the **Origin IP**, **Packet Name**, and **Resolved/Destination IP** into the Dashboard Action fields.</li>
+                    <li>**Choose Action:**
+                        <ul>
+                            <li>Click **Transmit Packet** if the packet status is **NORMAL**. (Earns regular points)</li>
+                            <li>Click **Defend Server** if the packet status is **UNDER ATTACK** (RED). (Earns triple points)</li>
+                        </ul>
+                    </li>
+                    <li>**Race the Clock:** The queue is replaced with new packets when the countdown hits zero. Be fast and accurate!</li>
+                </ol>
+            </div>
         </div>
-        <div class="packet-list">
-            <h3>Packets in Queue:</h3>
-            <ul id="packetQueue">
-                <!-- Dynamically populated -->
-            </ul>
+        <div class="top-row">
+            <div class="countdown" id="countdownContainer">
+                Queue refresh: <span id="countdown">--</span> seconds
+            </div>
+            <div class="score">
+                Total Score: <span id="scoreDisplay">0</span>
+                <button onclick="restartGame()" style="margin-left: 15px; background-color: #dc3545;">Restart Game</button>
+            </div>
         </div>
-        <div class="actions">
-            <h3>Routing Dashboard Actions:</h3>
-            <input type="text" id="originIP" class="input-field" placeholder="Enter Origin IP">
-            <input type="text" id="packetName" class="input-field" placeholder="Enter Packet Name">
-            <input type="text" id="destinationIP" class="input-field" placeholder="Enter Destination IP">
-            <button onclick="transmitPacket()">Transmit Packet</button>
-            <button onclick="defendServer()">Defend Server</button>
+
+        <div class="overall-timer-row">
+            <div class="overall-timer">
+                Overall Game Ends In: <span id="gameTimer">5:00</span>
+            </div>
         </div>
-        <div class="score">
-            <h3>Score:</h3>
-            <p id="scoreDisplay">0</p>
+        
+        <div class="player-name-row">
+            <div class="player-name-panel" id="playerNameDisplay"></div>
         </div>
+
+
+        <div class="left-panel">
+            <div class="packet-list">
+                <h3>Packets in Queue:</h3>
+                <ul id="packetQueue">
+                    </ul>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="dns-lookup">
+                <h3>DNS Lookup Table:</h3>
+                <table id="dnsTable" style="width:100%;">
+                    <thead><tr><th>Domain</th><th>IP Address</th></tr></thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+
+            <div class="actions">
+                <h3>Routing Dashboard Actions:</h3>
+                <input type="text" id="originIP" class="input-field" placeholder="Enter Origin IP">
+                <input type="text" id="packetName" class="input-field" placeholder="Enter Packet Name">
+                <input type="text" id="destinationInput" class="input-field" placeholder="Enter Destination IP (or Resolved IP)">
+                <button onclick="transmitPacket()">Transmit Packet</button>
+                <button onclick="defendServer()">Defend Server</button>
+                <p id="gameMessage" style="margin-top: 10px;"></p>
+            </div>
+            </div>
+
+        <footer>
+            <hr>
+            <p style="margin: 5px 0;">This simple game was <a href="https://github.com/wfryer/packet-defender" target="_blank">vibecoded by Wes Fryer</a>.</p>
+        </footer>
+        
+        <div id="animationPanel"></div>
+
     </main>
     <script>
+        // --- Game Mode Configuration ---
+        const GAME_DURATION_MINUTES = 5;
+        const GAME_DURATION_SECONDS = GAME_DURATION_MINUTES * 60;
+        let REFRESH_INTERVAL_S = 30; 
+        let REFRESH_INTERVAL_MS = 30000;
+        
+        // --- Game Setup & Data ---
         const packets = [];
-        let score = 0;
-        let countdownTime = 30;
+        let score = 0; 
+        let playerName = "";
+        
+        let countdownTime = 0;
         let countdownInterval;
+        let refreshTimer;
+        let gameTimerInterval;
+        
+        // Animation Frames for Packet Transfer
+        const animationFrames = [
+            `[ ] > > > > >`,
+            `[P] > > > > >`,
+            `> [P] > > > >`,
+            `> > [P] > > >`,
+            `> > > [P] > >`,
+            `> > > > [P] >`,
+            `> > > > > [P]`,
+            `TRANSFER COMPLETE`
+        ];
+        let frameIndex = 0;
+        let animationTimer;
+
+
+        // DNS Table: Maps domain names to their correct IP addresses
+        const dnsRecords = {
+            "secure-bank.com": "10.0.0.1",
+            "student-portal.edu": "10.0.0.2",
+            "global-isp.net": "10.0.0.3",
+            "router-A.local": "192.168.1.1",
+            "firewall-main.corp": "192.168.1.5"
+        };
+        const dnsDomains = Object.keys(dnsRecords);
+        const validIPs = Object.values(dnsRecords).concat(["192.168.1.2", "192.168.1.3", "192.168.1.4"]);
+        
+        // Packet Content
+        const originIPs = ["192.168.1.2", "192.168.1.3", "192.168.1.4"];
+        const packetNames = ["http-request", "ssh-login", "game-data", "email-sync", "dns-query"];
+        const basePoints = [10, 15, 20, 25, 30];
+
+        // --- Start Screen Logic ---
+        function selectMode(seconds) {
+            // 1. Get player name and validate
+            const inputName = document.getElementById('nameInput').value.trim();
+            if (inputName === "") {
+                alert("Please enter your name to start the game!");
+                return;
+            }
+            playerName = inputName;
+            localStorage.setItem('packetDefenderPlayerName', playerName);
+
+            // 2. Set difficulty
+            REFRESH_INTERVAL_S = seconds;
+            REFRESH_INTERVAL_MS = seconds * 1000;
+            
+            // 3. Hide start screen and show main game
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameMain').style.display = 'flex';
+            
+            startGame();
+        }
+
+        function startGame() {
+            // Clear all timers
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (refreshTimer) clearInterval(refreshTimer);
+            if (gameTimerInterval) clearInterval(gameTimerInterval);
+
+            // Load score and name
+            score = localStorage.getItem('packetDefenderScore') ? parseInt(localStorage.getItem('packetDefenderScore')) : 0; 
+            
+            document.getElementById('playerNameDisplay').textContent = `Current Defender: ${playerName}`;
+            updateScore();
+            populateDNSTable(); 
+            populatePackets();
+            startCountdown(); // Starts the Queue Refresh timer
+            startGameTimer(); // Starts the Overall Game timer
+            
+            // Set up the periodic queue refresh
+            refreshTimer = setInterval(refreshGame, REFRESH_INTERVAL_MS); 
+        }
+
+        // --- Core Functions ---
 
         function generateRandomPacket() {
-            const origins = ["192.168.1.1", "192.168.1.2", "192.168.1.3", "192.168.1.4", "192.168.1.5"];
-            const destinations = ["10.0.0.1", "10.0.0.2", "10.0.0.3", "10.0.0.4", "10.0.0.5"];
-            const names = ["alpha", "beta", "gamma", "delta", "epsilon"];
-            const points = [10, 15, 20, 25, 30];
-            const statuses = ["normal", "under attack"];
+            // Force Domain Name display for every packet.
+            const domainIndex = Math.floor(Math.random() * dnsDomains.length);
+            const destinationDisplay = dnsDomains[domainIndex]; // Domain Name (user sees)
+            const destination = dnsRecords[destinationDisplay]; // IP Address (correct answer)
+
+            // Increased probability for defense packet option
+            const isAttack = Math.random() < 0.3; // 30% chance for attack 
+            
+            let points = basePoints[Math.floor(Math.random() * basePoints.length)];
+            let status = isAttack ? "under attack" : "normal";
+            
+            if (status === "under attack") {
+                points = points * 3; 
+            }
 
             return {
-                origin: origins[Math.floor(Math.random() * origins.length)],
-                destination: destinations[Math.floor(Math.random() * destinations.length)],
-                name: names[Math.floor(Math.random() * names.length)],
-                points: points[Math.floor(Math.random() * points.length)],
-                status: statuses[Math.random() > 0.8 ? 1 : 0] // Make "under attack" rare
+                origin: originIPs[Math.floor(Math.random() * originIPs.length)],
+                destination: destination, // Actual IP
+                destinationDisplay: destinationDisplay, // Domain Name
+                name: packetNames[Math.floor(Math.random() * packetNames.length)],
+                points: points,
+                status: status
             };
+        }
+        
+        function generatePackets() {
+            // Step 1: Generate 5 random packets
+            let newPackets = [];
+            for (let i = 0; i < 5; i++) { 
+                newPackets.push(generateRandomPacket());
+            }
+
+            // Step 2: Ensure at least one packet is 'under attack'
+            const attackCount = newPackets.filter(p => p.status === 'under attack').length;
+            if (attackCount === 0) {
+                // Find a random packet and force it to be an attack
+                const indexToForce = Math.floor(Math.random() * 5);
+                newPackets[indexToForce] = generateRandomPacket(); // Re-generate to ensure domain/IP logic is fresh
+                
+                // Force status and points (worth 3x)
+                newPackets[indexToForce].status = 'under attack';
+                newPackets[indexToForce].points = newPackets[indexToForce].points * 3;
+            }
+            
+            packets.length = 0;
+            packets.push(...newPackets);
+            updatePacketQueue();
+        }
+
+
+        function populateDNSTable() {
+            const tableBody = document.getElementById('dnsTable').querySelector('tbody');
+            tableBody.innerHTML = "";
+            for (const [domain, ip] of Object.entries(dnsRecords)) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${domain}</td><td>${ip}</td>`;
+                tableBody.appendChild(tr);
+            }
         }
 
         function populatePackets() {
-            packets.length = 0; // Clear current packets
-            for (let i = 0; i < 5; i++) { // Show 5 packets
-                packets.push(generateRandomPacket());
-            }
-            updatePacketQueue();
+            generatePackets();
         }
 
         function updatePacketQueue() {
             const queue = document.getElementById('packetQueue');
             queue.innerHTML = "";
-            packets.forEach(packet => {
+            packets.forEach((packet, index) => {
                 const li = document.createElement('li');
-                li.classList.add('packet');
+                
+                // Assign one of the five colors dynamically
+                li.classList.add('packet', `color-${index % 5}`); 
+                
+                let statusText = `(${packet.status.toUpperCase()})`;
+                
+                // The under-attack class will override the color due to CSS priority
                 if (packet.status === "under attack") {
-                    li.classList.add('under-attack');
+                    li.classList.add('under-attack'); 
                 }
-                li.textContent = `Origin: ${packet.origin}, Destination: ${packet.destination}, Name: ${packet.name}, Points: ${packet.points} (${packet.status})`;
+
+                // BOLD the packet name
+                li.innerHTML = `**[#${index + 1}]** Origin: ${packet.origin}, Dest: ${packet.destinationDisplay} (DNS Lookup Required), Name: <strong>${packet.name}</strong>, Points: ${packet.points} ${statusText}`;
                 queue.appendChild(li);
             });
         }
 
-        function transmitPacket() {
-            const originIP = document.getElementById('originIP').value;
-            const packetName = document.getElementById('packetName').value;
-            const destinationIP = document.getElementById('destinationIP').value;
-
-            const packetIndex = packets.findIndex(packet => 
-                packet.origin === originIP && 
-                packet.name === packetName && 
-                packet.destination === destinationIP);
-
-            if (packetIndex !== -1) {
-                if (packets[packetIndex].status === "under attack") {
-                    alert("Cannot transmit! This packet is under attack.");
-                } else {
-                    score += packets[packetIndex].points;
-                    packets.splice(packetIndex, 1);
-                    updatePacketQueue();
-                    updateScore();
-                    alert("Packet transmitted successfully!");
-                }
-            } else {
-                alert("Incorrect information. Try again!");
-            }
-        }
-
-        function defendServer() {
-            const originIP = document.getElementById('originIP').value;
-            const packetName = document.getElementById('packetName').value;
-            const destinationIP = document.getElementById('destinationIP').value;
-
-            const packetIndex = packets.findIndex(packet => 
-                packet.origin === originIP && 
-                packet.name === packetName && 
-                packet.destination === destinationIP && 
-                packet.status === "under attack");
-
-            if (packetIndex !== -1) {
-                const defensePoints = packets[packetIndex].points * 2; // Double points for defense
-                score += defensePoints;
-                packets.splice(packetIndex, 1);
-                updatePacketQueue();
-                updateScore();
-                alert(`Server defended successfully! You earned ${defensePoints} points!`);
-            } else {
-                alert("Incorrect information or no packet under attack. Try again!");
-            }
+        function showMessage(message, type) {
+            const msgElement = document.getElementById('gameMessage');
+            msgElement.className = ''; 
+            msgElement.textContent = message;
+            msgElement.classList.add(type); 
+            setTimeout(() => { 
+                msgElement.textContent = ''; 
+                msgElement.className = ''; 
+            }, 3000);
         }
 
         function updateScore() {
             document.getElementById('scoreDisplay').textContent = score;
+            localStorage.setItem('packetDefenderScore', score); 
+        }
+        
+        function clearInputs() {
+            document.getElementById('originIP').value = '';
+            document.getElementById('packetName').value = '';
+            document.getElementById('destinationInput').value = '';
         }
 
+        // --- Animation Logic ---
+
+        function startAnimation(type) {
+            frameIndex = 0;
+            const panel = document.getElementById('animationPanel');
+            panel.style.color = type === 'DEFEND' ? '#4CAF50' : '#007bff';
+
+            panel.style.display = 'block';
+            
+            if (type === 'DEFEND') {
+                panel.textContent = 'FIREWALL ACTIVATED!';
+                setTimeout(() => { panel.style.display = 'none'; }, 1000);
+                return;
+            }
+
+            const animateStep = () => {
+                if (frameIndex < animationFrames.length) {
+                    panel.textContent = animationFrames[frameIndex];
+                    frameIndex++;
+                    animationTimer = setTimeout(animateStep, 100); 
+                } else {
+                    panel.style.display = 'none';
+                    if (animationTimer) clearTimeout(animationTimer);
+                }
+            };
+            animateStep();
+        }
+
+
+        // --- Game Actions ---
+
+        window.transmitPacket = function() {
+            const originIP = document.getElementById('originIP').value.trim();
+            const packetName = document.getElementById('packetName').value.trim();
+            const destinationInput = document.getElementById('destinationInput').value.trim(); 
+            
+            const packetIndex = packets.findIndex(packet => 
+                packet.origin === originIP && 
+                packet.name === packetName
+            );
+
+            if (packetIndex === -1) {
+                showMessage("Packet not found or incorrect inputs. Try again!", 'error');
+                return;
+            }
+
+            const matchedPacket = packets[packetIndex];
+
+            if (matchedPacket.status === "under attack") {
+                showMessage("ERROR: This packet is UNDER ATTACK! You must DEFEND it!", 'error');
+            } else if (matchedPacket.destination !== destinationInput) {
+                showMessage(`TRANSMISSION FAILED: Destination IP (${destinationInput}) is incorrect. Check your DNS Lookup Table!`, 'error');
+            } else {
+                score += matchedPacket.points;
+                packets.splice(packetIndex, 1);
+                updatePacketQueue();
+                updateScore();
+                clearInputs();
+                showMessage(`Packet transmitted successfully for ${matchedPacket.points} points!`, 'success');
+                startAnimation('TRANSMIT'); // Start animation on success
+            }
+        }
+
+        window.defendServer = function() {
+            const originIP = document.getElementById('originIP').value.trim();
+            const packetName = document.getElementById('packetName').value.trim();
+            const destinationInput = document.getElementById('destinationInput').value.trim(); 
+            
+            const packetIndex = packets.findIndex(packet => 
+                packet.origin === originIP && 
+                packet.name === packetName &&
+                packet.destination === destinationInput && 
+                packet.status === "under attack"
+            );
+
+            if (packetIndex === -1) {
+                showMessage("DEFENSE FAILED: Incorrect information or packet is NOT under attack.", 'error');
+            } else {
+                const defensePoints = packets[packetIndex].points; 
+                score += defensePoints; 
+                packets.splice(packetIndex, 1);
+                updatePacketQueue();
+                updateScore();
+                clearInputs();
+                showMessage(`SERVER DEFENDED! You countered the attack for ${defensePoints} points!`, 'success');
+                startAnimation('DEFEND'); // Start defense animation
+            }
+        }
+
+        window.restartGame = function() {
+            if (confirm("Are you sure you want to restart the game? Your score will be lost and you'll return to the mode selection screen.")) {
+                // Stop all timers
+                if (countdownInterval) clearInterval(countdownInterval);
+                if (refreshTimer) clearInterval(refreshTimer);
+                if (gameTimerInterval) clearInterval(gameTimerInterval);
+
+                // Clear score and return to the selection screen
+                localStorage.removeItem('packetDefenderScore');
+                document.getElementById('gameMain').style.display = 'none';
+                document.getElementById('startScreen').style.display = 'flex';
+                
+                // Keep the name pre-filled
+                document.getElementById('nameInput').value = playerName; 
+            }
+        }
+
+        // --- Timers and Refresh Logic ---
+
         function refreshGame() {
-            populatePackets();
+            populatePackets(); 
             resetCountdown();
             console.log("Game refreshed with new packets.");
         }
 
         function startCountdown() {
             const countdownElement = document.getElementById('countdown');
+            countdownTime = REFRESH_INTERVAL_S;
+            countdownElement.textContent = countdownTime; 
+
+            if (countdownInterval) clearInterval(countdownInterval);
+
             countdownInterval = setInterval(() => {
                 countdownTime--;
                 countdownElement.textContent = countdownTime;
                 if (countdownTime <= 0) {
                     clearInterval(countdownInterval);
+                    refreshGame(); 
                 }
             }, 1000);
         }
 
         function resetCountdown() {
             clearInterval(countdownInterval);
-            countdownTime = 30;
             startCountdown();
         }
 
-        setInterval(refreshGame, 30000); // Refresh every 30 seconds
+        function startGameTimer() {
+            if (gameTimerInterval) clearInterval(gameTimerInterval); 
+            
+            let timeLeft = GAME_DURATION_SECONDS;
+            const timerElement = document.getElementById('gameTimer');
+            timerElement.textContent = '5:00'; // Reset display before starting
+
+            gameTimerInterval = setInterval(() => {
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(gameTimerInterval);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            // Stop all timers
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (refreshTimer) clearInterval(refreshTimer);
+            if (gameTimerInterval) clearInterval(gameTimerInterval);
+
+            alert(`GAME OVER, ${playerName}! Your final score is ${score}. Time to compare with your classmates!`);
+            
+            // Return to start screen
+            document.getElementById('gameMain').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'flex';
+        }
+
+
+        // --- Initialization ---
+
         document.addEventListener('DOMContentLoaded', () => {
-            populatePackets();
-            startCountdown();
+            // Check if a player name exists in local storage and pre-fill the name field.
+            const storedName = localStorage.getItem('packetDefenderPlayerName');
+            if (storedName) {
+                document.getElementById('nameInput').value = storedName;
+                playerName = storedName;
+            }
+
+            // Initially show only the start screen.
+            document.getElementById('gameMain').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'flex';
+            
+            // Populate the DNS table immediately
+            populateDNSTable();
         });
     </script>
 </body>
