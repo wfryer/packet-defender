@@ -21,31 +21,10 @@ The core objective is to gamify essential Internet terminology and processes:
 * **Persistent Score:** The player's score is saved in their browser's local storage and persists across page reloads until they choose to restart the game.
 * **Visual Feedback:** Includes colorful packet queuing, a visible countdown, and a simple ASCII animation upon successful action.
 
-## 🚀 How to Deploy on GitHub Pages
+## 🚀 Play via GitHub Pages
 
-Since the entire game is in a single file, deployment is simple and can be done in two phases.
-
-### Phase 1: Uploading the New Code
-
-1.  **Rename/Save File:** Ensure your final, working code is saved as a single file, typically named **`index.html`** or **`packet-defender.html`**.
-2.  **Open Your Repository:** Go to your existing `packet-defender` repository on GitHub: `https://github.com/wfryer/packet-defender`.
-3.  **Navigate to the Code View:** Click on the **`Code`** tab.
-4.  **Edit the Existing File:** Click on the name of your old HTML file (e.g., `index.html`) to view its contents.
-5.  **Replace Content:** Click the **pencil icon** (`Edit this file`) and **replace all** the existing code with the complete, new code you just finalized.
-6.  **Commit Changes:** Scroll to the bottom, enter a clear commit message (e.g., "Feature complete v2.5: Added name display, 5m timer, and forced DNS lookup."), and click **Commit changes**.
-
-### Phase 2: Confirming GitHub Pages Deployment
-
-Your GitHub Pages link (`https://wfryer.github.io/packet-defender/`) should update automatically within 1–5 minutes. If it doesn't, follow these steps to confirm the settings:
-
-1.  **Go to Settings:** In your `packet-defender` repository, click the **`Settings`** tab.
-2.  **Navigate to Pages:** In the left sidebar, click on **`Pages`**.
-3.  **Check Source:** Ensure that under "Build and deployment," the settings are:
-    * **Source:** **Deploy from a branch**
-    * **Branch:** **`main`** (or whichever branch holds your HTML file)
-    * **Folder:** **`/ (root)`**
-4.  **Save/Wait:** If you made any changes, click **Save**. You should see a message at the top of the Pages screen confirming your site is now being built.
-5.  **Test:** Your new, feature-complete version will be live at:
-    `https://wfryer.github.io/packet-defender/`
+Use the link ]https://wfryer.github.io/packet-defender/](wfryer.github.io/packet-defender) to directly play the latest version of the game.
 
 Good luck with your students! I hope they enjoy the game and the improved features.
+
+Check out more of my AI coding experiments, blog posts and videos on [https://ai.wesfryer.com/](ai.wesfryer.com0.
